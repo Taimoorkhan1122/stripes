@@ -2,8 +2,8 @@ module.exports = {
   routes: [
     {
       method: "GET",
-      path: "/products/:_id/build",
-      handler: "Product.build",
+      path: "/products/:id/build",
+      handler: "build.build",
       config: {
         auth: false,
         policies: [],
