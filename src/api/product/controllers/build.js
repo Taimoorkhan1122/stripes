@@ -5,7 +5,7 @@
  */
 
 const _ = require("lodash");
-const {ApplicationError} = require("@strapi/utils/lib/errors")
+const { ApplicationError } = require("@strapi/utils/lib/errors");
 
 module.exports = {
   build: async (ctx, next) => {
@@ -57,16 +57,45 @@ module.exports = {
       */
       const variations = cartesian(
         _.map(attributes, ({ name, options }) =>
-          _.map(options, ({ value }) => ({ [name]: value }))
+          _.map(options, ({ value, description }) => ({ [name]: value, description }))
         )
       );
 
-      console.log("variations", variations);
+      //iterate through all variations creating the records
+      const records = _.map(variations, (variation) => {
+        let name = variation.reduce(
+          (acc, current) => acc + " " + Object.values(current)[0],
+          product.name
+        );
+        let slug = variation
+          .reduce(
+            (acc, current) => acc + "-" + Object.values(current)[0].replace(/ /g, "-"),
+            product.slug
+          )
+          .toLowerCase();
 
-      ctx.body = { data: product };
+        return {
+          product: product._id,
+          name: capitalize(name),
+          slug: slug,
+          price: product.price,
+          description: product.description,
+          variantDescription: variation.description,
+          stock: product.stock,
+          ...("sale" in product && { sale: product.sale }),
+        };
+      });
+
+      console.log("variations", variations[0], { records});
+
+
+      ctx.body = { data: {product, records} };
     } catch (err) {
       console.log("error", err);
       throw new ApplicationError("Error occurred :", err);
     }
   },
 };
+
+
+// https://hashinteractive.com/blog/strapi-ecommerce-product-variations-generator/
